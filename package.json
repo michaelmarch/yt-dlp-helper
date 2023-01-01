@@ -1,0 +1,17 @@
+{
+  "name": "yt-dlp-helper",
+  "version": "1.0.0",
+  "description": "A specific wrapper of yt-dlp, used for my other project",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "npm run build && node dist/index.js"
+  },
+  "author": "Michael March",
+  "license": "GPL-3.0",
+  "devDependencies": {
+    "@types/node": "^18.11.18",
+    "typescript": "^4.9.4"
+  },
+  "private": true
+}
