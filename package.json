@@ -2,7 +2,6 @@
   "name": "yt-dlp-helper",
   "version": "1.0.0",
   "description": "A specific wrapper of yt-dlp, used for my other project",
-  "type": "module",
   "scripts": {
     "build": "tsc",
     "test": "npm run build && node dist/index.js"
