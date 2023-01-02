@@ -16,4 +16,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
-          additional_files: "dist/index.d.ts"
+          additional_files: |
+            "dist/index.d.ts"
+            "package.json"
+            "LICENSE"
