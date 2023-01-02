@@ -2,3 +2,5 @@ name: 'Test module'
 runs:
   using: 'node16'
   main: 'dist/index.js'
+inputs:
+  additional_files: "dist/index.d.ts"
