@@ -17,5 +17,5 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           additional_files: |
-            "dist/index.d.ts
-            package.json"
+            dist/index.d.ts
+            package.json
