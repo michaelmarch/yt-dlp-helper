@@ -15,3 +15,5 @@ jobs:
       - uses: michaelmarch/build-and-tag-action@v1
         env:
           GITHUB_TOKEN: ${{ github.token }}
+        with:
+          additional_files: "dist/index.d.ts"
