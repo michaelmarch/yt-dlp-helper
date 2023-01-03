@@ -3,11 +3,14 @@ import { join } from "path";
 
 const BINARY_EXECUTABLE = "yt-dlp";
 
-export interface VideoInfo {
+const videoErrorPattern = /ERROR:[ ]+(?:.*?)[ ]+(\w{11,}?):[ ]+(.*)/;
+
+export type VideoInfo = {
   id: string;
-  title: string;
-  ext: string;
-}
+  title?: string;
+  ext?: string;
+  error?: string;
+};
 
 export default class YtDlpHelper {
   public async downloadVideoPlaylist(
@@ -35,6 +38,8 @@ export default class YtDlpHelper {
     }
 
     if (wantMPEG) {
+      // TODO: with verbose output (and maybe with some time function) check the impact of remuxing when the file is mp4 and when it's not
+      //command.push("--remux-video", "mp4");
       command.push("-f", "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4] / bv*+ba/b");
     } else {
       command.push("-f", "bv*+ba/b");
@@ -47,8 +52,10 @@ export default class YtDlpHelper {
     videoId: string,
     where: string,
     wantMPEG: boolean = false
-  ): Promise<VideoInfo[]> {
-    return this.downloadVideoPlaylist(videoId, where, wantMPEG, 1);
+  ): Promise<VideoInfo> {
+    let info = await this.downloadVideoPlaylist(videoId, where, wantMPEG, 1);
+
+    return info[0];
   }
 
   public async downloadAudioPlaylist(
@@ -85,19 +92,20 @@ export default class YtDlpHelper {
     videoId: string,
     where: string,
     wantMPEG: boolean = false
-  ): Promise<VideoInfo[]> {
-    return this.downloadAudioPlaylist(videoId, where, wantMPEG, 1);
+  ): Promise<VideoInfo> {
+    let info = await this.downloadAudioPlaylist(videoId, where, wantMPEG, 1);
+
+    return info[0];
   }
 
   private async execute(command: string[]): Promise<VideoInfo[]> {
-    return new Promise<VideoInfo[]>((resolve, _) => {
-      const infos: VideoInfo[] = [];
-
+    return new Promise<VideoInfo[]>((resolve, reject) => {
+      const infos = new Map<string, VideoInfo>();
       const process = spawn(BINARY_EXECUTABLE, command);
 
       process.stdout.on("data", (chunk: Buffer) => {
         const parts = chunk.toString("ascii").split("\n");
-        infos.push({
+        infos.set(parts[0], {
           id: parts[0],
           title: parts[1],
           ext: parts[2],
@@ -105,10 +113,29 @@ export default class YtDlpHelper {
       });
 
       process.stderr.on("data", (chunk: Buffer) => {
-        console.log(chunk.toString("utf-8"));
+        const error = chunk.toString("utf-8");
+        console.log(error);
+        const match = error.match(videoErrorPattern);
+        if (match != null) {
+          const [, id, errorMessage] = match;
+          const info = infos.get(id);
+
+          if (info) {
+            info.error = errorMessage;
+          } else {
+            infos.set(id, {
+              id: id,
+              error: errorMessage,
+            });
+          }
+        } else {
+          reject(new Error(error));
+        }
       });
 
-      process.on("exit", (_) => resolve(infos));
+      process.on("exit", (_) => {
+        resolve(Array.from<VideoInfo>(infos.values()));
+      });
     });
   }
 }
