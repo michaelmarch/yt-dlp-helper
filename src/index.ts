@@ -6,11 +6,13 @@ const BINARY_EXECUTABLE = "yt-dlp";
 const videoErrorPattern = /ERROR:[ ]+(?:.*?)[ ]+(\w{11,}?):[ ]+(.*)/;
 
 export type VideoInfo = {
-  id: string;
-  title?: string;
-  ext?: string;
+  readonly id: string;
+  readonly title?: string;
+  readonly ext?: string;
   error?: string;
 };
+
+export class YtDlpError extends Error {}
 
 export default class YtDlpHelper {
   public async downloadVideoPlaylist(
@@ -129,7 +131,7 @@ export default class YtDlpHelper {
             });
           }
         } else {
-          reject(new Error(error));
+          reject(new YtDlpError(error));
         }
       });
 
