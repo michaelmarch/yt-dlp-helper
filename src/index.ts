@@ -14,7 +14,7 @@ export type VideoInfo = {
 
 export class YtDlpError extends Error {}
 
-export default class YtDlpHelper {
+export class YtDlpHelper {
   public async downloadVideoPlaylist(
     playlistId: string,
     where: string,
@@ -23,6 +23,7 @@ export default class YtDlpHelper {
   ): Promise<VideoInfo[]> {
     const command = [
       playlistId,
+      "--no-warnings",
       "--no-simulate",
       "--no-progress",
       "--restrict-filenames",
@@ -68,6 +69,7 @@ export default class YtDlpHelper {
   ): Promise<VideoInfo[]> {
     const command = [
       playlistId,
+      "--no-warnings",
       "--no-simulate",
       "--no-progress",
       "--restrict-filenames",
