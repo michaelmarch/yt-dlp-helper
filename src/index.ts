@@ -9,6 +9,7 @@ export type VideoInfo = {
   readonly id: string;
   readonly title?: string;
   readonly ext?: string;
+  readonly playlist?: string;
   error?: string;
 };
 
@@ -31,7 +32,7 @@ export class YtDlpHelper {
       "-S",
       "res:1080",
       "-O",
-      "%(id)s\n%(title)s\n%(ext)s",
+      "%(id)s\n%(title)s\n%(ext)s\n%(playlist_title)s",
       "-o",
       join(where, "%(id)s.%(ext)s"),
     ];
@@ -74,7 +75,7 @@ export class YtDlpHelper {
       "--no-progress",
       "--restrict-filenames",
       "-O",
-      "%(id)s\n%(title)s\n%(ext)s",
+      "%(id)s\n%(title)s\n%(ext)s\n%(playlist_title)s",
       "-o",
       join(where, "%(id)s.%(ext)s"),
       "-f",
@@ -113,6 +114,7 @@ export class YtDlpHelper {
           id: parts[0],
           title: parts[1],
           ext: parts[2],
+          playlist: parts[3],
         });
       });
 
