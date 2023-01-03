@@ -2,21 +2,10 @@ import { spawn } from "child_process";
 import { join } from "path";
 
 const BINARY_EXECUTABLE = "yt-dlp";
-
 const videoErrorPattern = /ERROR:[ ]+(?:.*?)[ ]+(\w{11,}?):[ ]+(.*)/;
 
-export type VideoInfo = {
-  readonly id: string;
-  readonly title?: string;
-  readonly ext?: string;
-  readonly playlist?: string;
-  error?: string;
-};
-
-export class YtDlpError extends Error {}
-
 export class YtDlpHelper {
-  public async downloadVideoPlaylist(
+  async downloadVideoPlaylist(
     playlistId: string,
     where: string,
     wantMPEG: boolean = false,
@@ -28,7 +17,7 @@ export class YtDlpHelper {
       "--no-simulate",
       "--no-progress",
       "--restrict-filenames",
-      "--format-sort-force",
+      "--format-sort-force", // Makes it so -S works
       "-S",
       "res:1080",
       "-O",
@@ -52,17 +41,15 @@ export class YtDlpHelper {
     return this.execute(command);
   }
 
-  public async downloadVideo(
+  async downloadVideo(
     videoId: string,
     where: string,
     wantMPEG: boolean = false
   ): Promise<VideoInfo> {
-    let info = await this.downloadVideoPlaylist(videoId, where, wantMPEG, 1);
-
-    return info[0];
+    return (await this.downloadVideoPlaylist(videoId, where, wantMPEG, 1))[0];
   }
 
-  public async downloadAudioPlaylist(
+  async downloadAudioPlaylist(
     playlistId: string,
     where: string,
     wantMPEG: boolean = false,
@@ -74,8 +61,6 @@ export class YtDlpHelper {
       "--no-simulate",
       "--no-progress",
       "--restrict-filenames",
-      "-O",
-      "%(id)s\n%(title)s\n%(ext)s\n%(playlist_title)s",
       "-o",
       join(where, "%(id)s.%(ext)s"),
       "-f",
@@ -88,19 +73,21 @@ export class YtDlpHelper {
 
     if (wantMPEG) {
       command.push("-x", "--audio-format", "mp3");
+      // The flag `--audio-format` unfortunetally doesn't reflect the `%(ext)s template, so this needs to be handled here
+      command.push("-O", "%(id)s\n%(title)s\nmp3\n%(playlist_title)s");
+    } else {
+      command.push("-O", "%(id)s\n%(title)s\n%(ext)s\n%(playlist_title)s");
     }
 
     return this.execute(command);
   }
 
-  public async downloadAudio(
+  async downloadAudio(
     videoId: string,
     where: string,
     wantMPEG: boolean = false
   ): Promise<VideoInfo> {
-    let info = await this.downloadAudioPlaylist(videoId, where, wantMPEG, 1);
-
-    return info[0];
+    return (await this.downloadAudioPlaylist(videoId, where, wantMPEG, 1))[0];
   }
 
   private async execute(command: string[]): Promise<VideoInfo[]> {
@@ -145,3 +132,13 @@ export class YtDlpHelper {
     });
   }
 }
+
+export type VideoInfo = {
+  readonly id: string;
+  readonly title?: string;
+  readonly ext?: string;
+  readonly playlist?: string;
+  error?: string;
+};
+
+export class YtDlpError extends Error {}
